@@ -244,6 +244,7 @@ impl Network {
 
     pub fn register_tcp_id(&mut self, node_id: NodeId, tcp_id: u32) {
         trace!("registering tcp id {} for node {}", tcp_id, node_id);
+        debug!("registering tcp id {} for node {}", tcp_id, node_id);
         assert!(
             self.nodes
                 .get_mut(&node_id)
@@ -263,6 +264,7 @@ impl Network {
         tcp_id: u32,
     ) {
         trace!("deregistering tcp id {} for node {}", tcp_id, node);
+        debug!("deregistering tcp id {} for node {}", tcp_id, node);
 
         // node may have been deleted
         if let Some(node) = self.nodes.get_mut(&node) {

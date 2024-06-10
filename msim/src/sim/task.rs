@@ -100,10 +100,23 @@ pub fn shutdown_all_nodes() {
     let node_ids: Vec<_> = handle.task.nodes.lock().unwrap().keys().copied().collect();
     for node_id in node_ids {
         if node_id == cur_node_id {
+            tracing::info!("ZZZZZZZ msim no shutting down current {:?}", node_id);
             continue;
         }
+        tracing::info!("ZZZZZZZ msim shutting down {:?}", node_id);
         handle.kill(node_id);
     }
+}
+
+/// Get all nodes
+pub fn get_all_nodes() -> Vec<NodeId> {
+    let mut all = Vec::new();
+    let handle = runtime::Handle::current();
+    let node_ids: Vec<_> = handle.task.nodes.lock().unwrap().keys().copied().collect();
+    for node_id in node_ids {
+        all.push(node_id);
+    }
+    all
 }
 
 /// Kill the current node by panicking with a special type that tells the executor to kill the

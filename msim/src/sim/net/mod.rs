@@ -45,6 +45,7 @@ use std::{
 };
 use tap::TapFallible;
 use tracing::*;
+use backtrace::Backtrace;
 
 pub mod config;
 pub use config::*;
@@ -70,7 +71,7 @@ pub struct NetSim {
     host_state: Mutex<HostNetworkState>,
     rand: GlobalRng,
     time: TimeHandle,
-    next_tcp_id_map: Mutex<HashMap<IpAddr, u32>>,
+    next_tcp_id_map: Mutex<HashMap<NodeId, u32>>,
 }
 
 #[derive(Debug)]
@@ -137,6 +138,9 @@ impl Drop for OwnedFd {
 fn alloc_fd() -> libc::c_int {
     let fd = unsafe { libc::dup(0) };
     debug!("allocated fd {}", fd);
+    if fd == 590 {
+        debug!("ZZZZ allocated 590 FD {:?}", backtrace::Backtrace::new());
+    }
     fd
 }
 
@@ -256,6 +260,10 @@ define_sys_interceptor!(
             return 0;
         }
         trace!("forwarding close({}) to libc", fd);
+        if fd == 590 && plugin::node() == NodeId(6) {
+            println!("ZZZZ backtrace {:?}", Backtrace::new());
+            // panic!("ZZZZZZZ see trace.");
+        }
         NEXT_DL_SYM(fd)
     }
 );
@@ -891,6 +899,7 @@ define_sys_interceptor!(
 
 impl plugin::Simulator for NetSim {
     fn new(rand: &GlobalRng, time: &TimeHandle, config: &crate::SimConfig) -> Self {
+        debug!("ZZZZZ new NetSim");
         NetSim {
             network: Mutex::new(Network::new(rand.clone(), time.clone(), config.net.clone())),
             rand: rand.clone(),
@@ -992,9 +1001,9 @@ impl NetSim {
     }
 
     /// Get the next unused tcp id for this ip address.
-    pub fn next_tcp_id(&self, ip: IpAddr) -> u32 {
+    pub fn next_tcp_id(&self, id: NodeId) -> u32 {
         let mut map = self.next_tcp_id_map.lock().unwrap();
-        match map.entry(ip) {
+        match map.entry(id) {
             Entry::Occupied(mut cur) => {
                 let cur = cur.get_mut();
                 // limited to 2^32 - 1 tcp sessions per ip per simulation run.
@@ -1111,7 +1120,8 @@ impl Endpoint {
 
     /// Allocate a new tcp id number for this node. Ids are never reused.
     pub fn allocate_local_tcp_id(&self) -> u32 {
-        let id = self.net.next_tcp_id(self.addr.ip());
+        let id = self.net.next_tcp_id(self.node);
+        debug!("ZZZZZ allocate_local_tcp_id {:?} {:?} {:?}", self.addr.ip(), id, self.node);
         self.live_tcp_ids.lock().unwrap().insert(id);
         self.net
             .network

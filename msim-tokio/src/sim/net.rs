@@ -4,7 +4,7 @@ use std::{
     future::Future,
     io,
     net::SocketAddr as StdSocketAddr,
-    os::unix::io::{AsRawFd, FromRawFd, IntoRawFd, RawFd},
+    os::unix::io::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, RawFd},
     pin::Pin,
     sync::{
         atomic::{AtomicBool, AtomicU32, Ordering},
@@ -761,19 +761,29 @@ impl IntoRawFd for TcpSocket {
 // reads/writes that occur while the stream is being manipulated as a raw fd.
 impl AsRawFd for TcpStream {
     fn as_raw_fd(&self) -> RawFd {
+        trace!("ZZZZZZZZ as raw fd");
         unimplemented!("as_raw_fd not supported in simulator")
     }
 }
 
 impl FromRawFd for TcpStream {
     unsafe fn from_raw_fd(_fd: RawFd) -> TcpStream {
+        trace!("ZZZZZZZZ from faw fd");
         unimplemented!("from_raw_fd not supported in simulator")
     }
 }
 
 impl IntoRawFd for TcpStream {
     fn into_raw_fd(self) -> RawFd {
+        trace!("ZZZZZZZZ into fd");
         unimplemented!("into_raw_fd not supported in simulator")
+    }
+}
+
+impl AsFd for TcpStream {
+    fn as_fd(&self) -> BorrowedFd<'_> {
+        trace!("ZZZZZZZZ as fd");
+        unimplemented!("as_fd not supported in simulator")
     }
 }
 

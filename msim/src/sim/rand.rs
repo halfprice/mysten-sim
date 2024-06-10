@@ -60,6 +60,7 @@ struct Inner {
 impl GlobalRng {
     /// Create a new RNG using the given seed.
     pub fn new_with_seed(seed: u64) -> Self {
+        tracing::trace!("ZZZZZZ new_with_seed {:?} GlobalRng", seed);
         // XXX: call this function to make sure it won't be gc.
         unsafe { getentropy(std::ptr::null_mut(), 0) };
         if !init_std_random_state(seed) {
@@ -82,6 +83,11 @@ impl GlobalRng {
     pub(crate) fn with<T>(&self, f: impl FnOnce(&mut SmallRng) -> T) -> T {
         let mut lock = self.inner.lock().unwrap();
         let ret = f(&mut lock.rng);
+        tracing::trace!("ZZZZZZ calling rng");
+
+        let kkk: std::collections::HashSet<i32> = std::collections::HashSet::from_iter(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        tracing::debug!("ZZZZZZ ddddd check: {:?}", kkk);
+
         // log or check
         if lock.log.is_some() || lock.check.is_some() {
             let t = crate::time::TimeHandle::try_current().map(|t| t.elapsed());
@@ -95,9 +101,16 @@ impl GlobalRng {
             if let Some((check, i)) = &mut lock.check {
                 if check.get(*i) != Some(&v) {
                     if let Some(time) = t {
-                        panic!("non-determinism detected at {:?}", time);
+                        println!("ZZZZZ non-determinism detected at {:?}", time);
                     }
-                    panic!("non-determinism detected");
+                    println!("ZZZZ non-determinism {:?}", backtrace::Backtrace::new_unresolved());
+
+                    panic!("ZZZZZ non-determinism detected");
+                    /*
+                    let rrr = std::panic::catch_unwind (|| { panic!("ZZZZZ non-determinism detected") });
+                    println!("ZZZZZ panic result {:?}", rrr);
+                    // panic!("non-determinism detected");
+                    std::panic::resume_unwind(rrr.unwrap_err());*/
                 }
                 *i += 1;
             }
@@ -126,6 +139,7 @@ impl GlobalRng {
 
 /// Retrieve the deterministic random number generator from the current msim context.
 pub fn thread_rng() -> GlobalRng {
+    tracing::trace!("ZZZZZZ calling thread rng");
     crate::context::current(|h| h.rand.clone())
 }
 
@@ -165,6 +179,7 @@ pub struct Log(Vec<u8>);
 ///
 /// You should call this function before constructing any `HashMap` or `HashSet` in a new thread.
 fn init_std_random_state(seed: u64) -> bool {
+    tracing::trace!("ZZZZZZ init std random state {:?}", seed);
     SEED.with(|s| s.set(Some(seed)));
     let _ = std::collections::hash_map::RandomState::new();
     SEED.with(|s| s.replace(None)).is_none()

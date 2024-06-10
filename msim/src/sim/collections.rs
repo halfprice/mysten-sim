@@ -25,6 +25,7 @@ pub struct RandomState(ahash::RandomState);
 /// Initialize a [`RandomState`] from global RNG.
 impl Default for RandomState {
     fn default() -> Self {
+        tracing::trace!("ZZZZZZZZ create randomness state");
         let mut rng = thread_rng();
         Self(ahash::RandomState::with_seeds(
             rng.gen(),
@@ -50,6 +51,7 @@ pub struct HashSet<T, S = RandomState>(std::collections::HashSet<T, S>);
 impl<T> HashSet<T, RandomState> {
     /// Creates an empty `HashSet`.
     pub fn new() -> Self {
+        tracing::trace!("ZZZZZZZZ new hashset");
         HashSet(std::collections::HashSet::with_hasher(
             RandomState::default(),
         ))
@@ -57,6 +59,7 @@ impl<T> HashSet<T, RandomState> {
 
     /// Creates an empty `HashSet` with the specified capacity.
     pub fn with_capacity(capacity: usize) -> Self {
+        tracing::trace!("ZZZZZZZZ new hashset with compacity");
         HashSet(std::collections::HashSet::with_capacity_and_hasher(
             capacity,
             RandomState::default(),
@@ -71,6 +74,7 @@ pub struct HashMap<K, V, S = RandomState>(std::collections::HashMap<K, V, S>);
 impl<K, V> HashMap<K, V, RandomState> {
     /// Creates an empty `HashMap`.
     pub fn new() -> Self {
+        tracing::trace!("ZZZZZZZZ new hashmap");
         HashMap(std::collections::HashMap::with_hasher(
             RandomState::default(),
         ))
@@ -78,6 +82,7 @@ impl<K, V> HashMap<K, V, RandomState> {
 
     /// Creates an empty `HashMap` with the specified capacity.
     pub fn with_capacity(capacity: usize) -> Self {
+        tracing::trace!("ZZZZZZZZ new hashmap with compacity");
         HashMap(std::collections::HashMap::with_capacity_and_hasher(
             capacity,
             RandomState::default(),

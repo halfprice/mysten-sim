@@ -24,7 +24,14 @@ pub(crate) fn try_current_task() -> Option<Arc<TaskInfo>> {
 }
 
 pub(crate) fn current_node() -> NodeId {
-    TASK.with(|task| task.borrow().as_ref().expect(MSG).node())
+    TASK.with(|task| {
+        let binding = task.borrow();
+        let ttt = binding.as_ref();
+        if !ttt.is_some() {
+            println!("ZZZZZ current_node {:?}", backtrace::Backtrace::new());
+        }
+        ttt.expect(MSG).node()
+    })
 }
 
 /// Set this [`Handle`] as the current active [`Handle`].

@@ -8,7 +8,7 @@ use crate::task::{JoinHandle, NodeId};
 use ::rand::Rng;
 use std::{
     any::TypeId,
-    collections::HashMap,
+    collections::{BTreeMap, HashMap},
     fmt,
     future::Future,
     io::Write,
@@ -79,6 +79,7 @@ impl Runtime {
 
     /// Register a simulator.
     pub fn add_simulator<S: plugin::Simulator>(&self) {
+        tracing::info!("ZZZZZZ add simulator");
         let mut sims = self.handle.sims.lock().unwrap();
         let sim = Arc::new(S::new(
             &self.handle.rand,
